@@ -1,0 +1,36 @@
+Please write a function that takes a list of epoch timestamps in seconds (list of integers) and a list of power consumption values (list of floats), and returns a matrix of power values where the rows correspond to dates and the columns correspond to hours 14, 15, and 16 (2pm, 3pm, and 4pm). Power consumption for all other hours should be ignored.
+
+For this exercise, please use GMT when deciding the hour of day, and assume that the provided timestamps are hourly (12:00am, 1:00am, 2:00am ,etc) and there is no need to resample.
+
+For example, if the timestamps provided covered two complete days starting at midnight and the power increased from 0 at midnight to 47 at 11pm the following day, then the returned matrix would be:
+[
+[14, 15, 16],
+[38, 39, 40]
+]
+
+[execution time limit] 4 seconds (py3)
+
+[input] array.integer unix_time
+
+List of timestamps in unix epoch time (seconds)
+
+[input] array.float power
+
+List of power consumption values in kW
+
+[output] array.array.float
+
+Matrix of power consumption values with rows corresponding to dates and columns corresponding to the hours 2pm - 4pm
+
+[Python 3] Syntax Tips
+
+# Prints help message to the console
+# Returns a string
+def helloWorld(name):
+    print("This prints to the console when you Run Tests")
+    return "Hello, " + name
+
+
+
+def solution(unix_time, power):
+

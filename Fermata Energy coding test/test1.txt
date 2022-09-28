@@ -1,0 +1,134 @@
+In model.py, the following three classes are defined:
+
+Charger: tracks maximum power (kW) that a charger can charge or discharge
+EvBattery: tracks maximum power (kW) and maximum stored energy (kWh) of the EV battery
+Site: tracks which EvBatteries are connected to which Chargers, and calculates the max power (kW) of each pair given the capacity of the charger and the battery
+The goal of this assignment is to complete Site.calculate_max_discharge and Site.add_charger_ev_battery so that all unit tests pass. This can be done without modifying either Charger and EvBattery; however, you can modify those classes if desired.
+
+*Note: The overall class structure is a simplification of actual Site dynamics, and this assignment is strictly for the purpose of assessing OOP skills.
+
+[execution time limit] 30 seconds
+
+
+
+
+from typing import Dict
+
+
+class Charger:
+    """
+    Simple class for tracking maximum power that a charger can either charge or discharge
+    """
+    def __init__(self, max_power: float):
+        self.max_power = max_power
+  
+
+
+class EvBattery:
+    """
+    Simple class for tracking maximum power that a battery can either charge or discharge and the maximum energy
+    that it can store within it's battery.
+    """
+    def __init__(self, max_power: float, max_stored_energy: float):
+        self.max_power = max_power
+        self.max_stored_energy = max_stored_energy
+  
+  
+class Site:
+    """
+    Site tracks which EvBatteries are connected to which Chargers, and calculates how much
+    each pair can charge/discharge given the capacity of the charger and the battery
+    """
+    def __init__(self, charger_to_ev_map: Dict[Charger, EvBattery]):
+        self.charger_to_ev_map = charger_to_ev_map
+        
+    def calculate_max_discharge(self) -> float:
+        """
+        Calculate the maximum power of the total system.
+        When summing across each charger & ev battery combination, should
+        take the minimum max_power value between the charger and the ev
+        battery
+        """
+        pass
+        
+    def add_charger_ev_battery(self, charger: Charger, ev_battery: EvBattery):
+        """
+        Update charger_to_ev_map to include the provided charger and
+        ev_battery. Raise an error if either the provided charger or 
+        ev_battery already exist in self.charger_to_ev_map
+        """
+        pass
+
+
+
+
+
+my solution:
+
+from typing import Dict
+
+class Charger:
+    """
+    Simple class for tracking maximum power that a charger can either charge or discharge
+    """
+    def __init__(self, max_power: float):
+        self.max_power = max_power
+  
+
+
+class EvBattery:
+    """
+    Simple class for tracking maximum power that a battery can either charge or discharge and the maximum energy
+    that it can store within it's battery.
+    """
+    def __init__(self, max_power: float, max_stored_energy: float):
+        self.max_power = max_power
+        self.max_stored_energy = max_stored_energy
+  
+  
+class Site:
+    """
+    Site tracks which EvBatteries are connected to which Chargers, and calculates how much
+    each pair can charge/discharge given the capacity of the charger and the battery
+    """
+    def __init__(self, charger_to_ev_map: Dict[Charger, EvBattery]):
+        self.charger_to_ev_map = charger_to_ev_map
+        
+    def calculate_max_discharge(self) -> float:
+        """
+        Calculate the maximum power of the total system.
+        When summing across each charger & ev battery combination, should
+        take the minimum max_power value between the charger and the ev
+        battery
+        """
+        
+        #print('new test')
+        
+        max_discharge = 0.0
+        
+        for charger in  self.charger_to_ev_map:
+            minimum_max_power_value = min([
+                charger.max_power, 
+                self.charger_to_ev_map[charger].max_power,              
+                ])
+            max_discharge += minimum_max_power_value
+            #print(f'{minimum_max_power_value:0.4f}, {max_discharge:0.4f}')
+        
+        return max_discharge
+        
+    def add_charger_ev_battery(self, charger: Charger, ev_battery: EvBattery):
+        """
+        Update charger_to_ev_map to include the provided charger and
+        ev_battery. Raise an error if either the provided charger or 
+        ev_battery already exist in self.charger_to_ev_map
+        """
+        
+        if charger in self.charger_to_ev_map:                 
+            raise ValueError('provided charger already exist in self.charger_to_ev_map')
+        
+        for c in self.charger_to_ev_map:
+            if ev_battery == self.charger_to_ev_map[c]:
+                raise ValueError('provided ev_battery already exist in self.charger_to_ev_map')
+        
+        self.charger_to_ev_map[charger] = ev_battery
+        

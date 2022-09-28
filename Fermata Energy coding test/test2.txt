@@ -1,0 +1,30 @@
+Inside the data folder, there is a csv containing the CAISO LMP prices for September (source). The goal of this exercise is to complete the following methods for some simple data manipulation:
+
+calculate_total_price_per_timestamp: Calculate the total price per unique timestamp and return a pandas Series with the values equaling the total price.
+find_date_with_highest_prices: Return the datetime that has the highest total price (should sum across all timestamps within that date).
+*Note: There are hidden tests on this assignment, so passing the visible tests does not guarantee a perfect score.
+
+[execution time limit] 30 seconds
+
+
+
+import pandas as pd
+import pytz
+import datetime
+    
+
+def calculate_total_price_per_timestamp(df: pd.DataFrame) -> pd.Series:
+    """
+    Takes the provided DataFrame as an input and calculates the total price per timestamp.
+    The price column name is PRICE.
+    Should return a pandas Series with pd.DatetimeIndex and price
+    """
+    pass
+    
+
+def find_date_with_highest_prices(input_series: pd.Series) -> datetime.date:
+    """
+    Returns the date within the provided `input_series` which has the highest total price 
+    (as indicated by the series values)
+    """
+    pass
