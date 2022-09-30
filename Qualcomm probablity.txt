@@ -1,0 +1,8 @@
+in cross road
+
+10 min red, 10 green 
+
+what is the expected waiting time:
+
+
+answer: 2.5 min
