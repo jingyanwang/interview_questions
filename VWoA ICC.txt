@@ -1,0 +1,18 @@
+1. bias and variance tradeoff
+
+2. Variational Autoencoders (VAEs) vs GAN
+
+what is the problem of image generate by VAE.
+
+
+3. Scala vs Java in Spark
+
+It's ideal for back-end code, scripts, software development, and web design. Programmers also tout Scala's seamless integration of object-oriented features and functional languages as the perfect tool for parallel batch processing, data analysis using Spark, AWS Lambda expressions, and ad hoc scripting with REPL.
+
+4. ResNet
+
+5. what is the commend of list all the running jobs of docker
+
+6. inner join and outter join, commend for outter join
+
+7. Yolo
