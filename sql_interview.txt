@@ -1,0 +1,224 @@
+CREATE TABLE patient_pills (
+  patient_id int,
+  fill_day int,
+  pills_added int
+);
+
+-- Sample Data
+INSERT INTO patient_pills VALUES (1, 0, 30);
+INSERT INTO patient_pills VALUES (1, 40, 30);
+INSERT INTO patient_pills VALUES (1, 60, 30);
+INSERT INTO patient_pills VALUES (1, 85, 30); -- should be 10
+
+INSERT INTO patient_pills VALUES (2, 0, 30);
+INSERT INTO patient_pills VALUES (2, 40, 100);
+INSERT INTO patient_pills VALUES (2, 60, 20);
+INSERT INTO patient_pills VALUES (2, 85, 10); -- should be 10
+
+INSERT INTO patient_pills VALUES (3, 0, 30);
+INSERT INTO patient_pills VALUES (3, 10, 10);
+INSERT INTO patient_pills VALUES (3, 100, 5);
+INSERT INTO patient_pills VALUES (3, 120, 10); -- should be 75
+
+INSERT INTO patient_pills VALUES (4, 0, 5); 
+INSERT INTO patient_pills VALUES (4, 10, 35); 
+INSERT INTO patient_pills VALUES (4, 55, 5); 
+INSERT INTO patient_pills VALUES (4, 90, 10); -- should be 45
+
+INSERT INTO patient_pills VALUES (5, 0, 10);
+INSERT INTO patient_pills VALUES (5, 70, 5); 
+INSERT INTO patient_pills VALUES (5, 90, 10); 
+INSERT INTO patient_pills VALUES (5, 140, 50); -- should be 115
+
+
+WITH full_table AS (
+    SELECT 
+        *,
+  		LAG(fill_day, 1) OVER (
+            PARTITION BY patient_id
+            ORDER BY patient_id
+        ) previous_fill_day,
+        LAG(pills_added, 1) OVER (
+            PARTITION BY patient_id
+            ORDER BY patient_id
+        ) previous_pills_added
+    FROM 
+        patient_pills
+),
+
+full_elapsed_table AS (
+    SELECT 
+        *,
+        fill_day - previous_fill_day AS days_elapsed
+    FROM full_table
+),
+
+gross_change AS (
+    SELECT 
+        *,
+        CASE 
+            WHEN previous_pills_added IS NULL THEN pills_added
+            ELSE pills_added - days_elapsed 
+        END AS gross_change
+    FROM full_elapsed_table
+),
+
+total_pills_ as (
+    SELECT
+        *,
+        SUM(gross_change) OVER(PARTITION BY patient_id ORDER BY fill_day) AS total_pills_
+    FROM gross_change
+),
+
+total_pills AS (
+    SELECT *,
+    CASE
+    	WHEN total_pills_ < 0 THEN pills_added
+        ELSE total_pills_
+    END AS total_pills  
+  	FROM total_pills_
+),
+
+
+previous_total_pills AS (
+    SELECT 
+        *,
+        LAG(total_pills, 1) OVER (PARTITION BY patient_id ORDER BY patient_id) AS previous_total_pills
+    FROM total_pills
+),
+
+adjusted_change AS (
+    SELECT
+        *,
+        CASE
+            WHEN days_elapsed > previous_total_pills 
+            	THEN pills_added - previous_total_pills
+            ELSE gross_change
+        END AS adjusted_change
+    FROM previous_total_pills
+),
+
+actual_total AS (
+    SELECT 
+        *,
+        SUM(adjusted_change) OVER(PARTITION BY patient_id ORDER BY fill_day) AS actual_total
+    FROM adjusted_change
+),
+
+previous_actual_total AS (
+    SELECT 
+        *,
+  		LAG(actual_total, 1) OVER (
+            PARTITION BY patient_id
+            ORDER BY patient_id
+        ) previous_actual_total   
+    FROM actual_total
+),
+
+readjusted_change AS (
+    SELECT
+        *,
+        CASE
+            WHEN days_elapsed > previous_actual_total 
+            	THEN pills_added - previous_actual_total
+            ELSE gross_change
+        END AS readjusted_change
+    FROM previous_actual_total
+),
+
+running_total AS (
+    SELECT
+        *,
+        SUM(readjusted_change) OVER(PARTITION BY patient_id ORDER BY fill_day) AS running_total
+    FROM readjusted_change
+),
+
+previous_running_total AS (
+    SELECT
+        *,
+        LAG(running_total, 1) OVER (PARTITION BY patient_id ORDER BY patient_id) AS previous_running_total
+    FROM running_total
+),
+
+pill_less_days AS (
+    SELECT 
+        *,
+        CASE
+            WHEN days_elapsed > previous_running_total THEN days_elapsed - previous_running_total
+            ELSE 0
+        END AS pill_less_days
+    FROM previous_running_total
+)
+
+SELECT 
+    patient_id,
+    SUM(pill_less_days) AS pill_less_days
+FROM pill_less_days 
+GROUP BY patient_id
+
+
+
+Question 1:
+
+WITH non_21_patient 
+AS 
+(
+	SELECT PatientID,PharmacyStoreID
+	FROM Rxclaim (NOLOCK)
+	WHERE PatientID not in (select PatientID from Patient (NOLOCK) where ClientKey=21)
+)
+select I.PatientID,
+	I.state,
+			ROW_NUMBER() OVER (partition by I.state ORDER BY I.PatientID) rnb, 
+DENSE_RANK() OVER (ORDER BY I.state,) dnb
+FROM Prescription I (NOLOCK) INNER JOIN non_21_patient N
+	ON I.PatientID=N.PatientID 
+  and I.PharmacyStoreID=N.PharmacyStoreID
+
+
+ --
+a. Above query uses the Common Table Expression(CTE) method. What other methods that we can use to re-write the query?
+
+b. What will be the RNB and DNB values for the above query?
+
+101, ST001, AZ	-	1
+102, ST002, AZ	-	1
+103, ST003, CT	-	2
+
+c. If the performance of the above query is not sufficient, how can we improve?
+
+
+Question 2:
+
+patientidentifier	                          filldate	NDCNumber
+0x023FFB679CD962436497372794BCDA30	        20201007	00023320508
+0x023FFB679CD962436497372794BCDA30	        20200707	00023320508
+0x04AC71FC02E62CBA46C1F9C3BAC43BED	        20190115	00093500356
+0x0592AEC4318F09C40BC368E87C8C4F89	        20200714	64980051415
+0x06D1B7E920864707DF420EE5695D1A6D	        20200612	00065427325
+0x06D1B7E920864707DF420EE5695D1A6D	        20191230	00065427325
+0x0CD11C6E65765438F25423B23D07DE1A	        20190116	16729000301
+0x0E07EF2CFCBC1FF58944F87D02BFF9CD	        20200306	00310110530
+0x0E07EF2CFCBC1FF58944F87D02BFF9CD	        20200325	00378395205
+0x0E07EF2CFCBC1FF58944F87D02BFF9CD	        20190000  00378395205
+
+
+Please write a query to show the patients who have fills in both 2020 and 2019 
+(patients should have at least 1 fill in 2019 and at least one fill in 2020)
+
+
+SELECT * from table_patients
+--where (filldate > 20189999) and (filldate < 20210000) 
+where DATE(filldate)(year) in (2019, 2020)
+group by  patientidentifier
+
+ON
+cte1.patientidentifier=cte2.patientidentifier
+
+								 
+								
+
+
+
+
+
